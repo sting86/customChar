@@ -1,0 +1,225 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script>
+window.onload=function() {
+	if (!String.prototype.format) {
+	  String.prototype.format = function() {
+		var args = arguments;
+		return this.replace(/{(\d+)}/g, function(match, number) { 
+		  return typeof args[number] != 'undefined'
+			? args[number]
+			: match
+		  ;
+		});
+	  };
+	}
+	loadFromStorage();
+	reload();
+}
+var px=5;
+var py=8;
+var gs=20;
+var sgs = 4;
+var bytes = [];
+var bgc = "#004400";
+var fgc = "#44FF33";
+
+function reload() {
+	inputs=document.getElementById("inputs");
+	inputs.innerHTML = "";
+	for(var i=0;i<py;i++) {
+		inputs.innerHTML += "<input id='b{0}' value='0'></input><br>".format(i);
+	}
+
+    canv=document.getElementById("gc");
+	code=document.getElementById("code");
+    ctx=canv.getContext("2d");
+    document.addEventListener("keyup",keyPush);
+	canv.addEventListener("mousedown",mousePush);
+    //setInterval(game,1000/15);
+	bytes.length = py;
+	for(var i=0;i<py;i++) {
+		bytes[i] = document.getElementById("b{0}".format(i));
+	}
+	//bytes.splice(6, 1);
+		
+	game();
+}
+function loadFromStorage() {
+	if (typeof(Storage) !== "undefined") {
+		// Store
+		var temp = localStorage.getItem("px");
+		if (!temp) px=5; else px = parseInt(temp, 10);
+		var temp = localStorage.getItem("py");
+		if (!temp) py=8; else py = parseInt(temp, 10);
+		var temp = localStorage.getItem("gs");
+		if (!temp) gs=20; else gs= parseInt(temp, 10);
+		var temp = localStorage.getItem("sgs");
+		if (!temp) sgs=5; else sgs = parseInt(temp, 10);
+		var temp = localStorage.getItem("bgc");
+		if (!temp) bgc="#004400"; else bgc = temp;
+		var temp = localStorage.getItem("fgc");
+		if (!temp) fgc="#44FF33"; else fgc = temp;
+	} else {
+		document.getElementById("cookieError").innerHTML = "Sorry, your browser does not support Web Storage...";
+		document.getElementById("cookieError").style.visibility = "visible";
+	}
+}
+
+function saveToStorage() {
+	if (typeof(Storage) !== "undefined") {
+		localStorage.setItem("px", px);
+		localStorage.setItem("py", py);
+		localStorage.setItem("gs", gs);
+		localStorage.setItem("sgs", sgs);
+		localStorage.setItem("bgc", bgc);
+		localStorage.setItem("fgc", fgc);
+	}
+}
+
+function deleteFromStorage() {
+	if (typeof(Storage) !== "undefined") {
+		localStorage.clear();
+		history.go(0);
+		//loadFromStorage();
+		//localStorage.removeItem("px");
+		//localStorage.removeItem("py");
+		//localStorage.removeItem("gs");
+		//localStorage.removeItem("sgs");
+	//	localStorage.removeItem("bgc");
+		//localStorage.removeItem("fgc");
+		//localStorage.setItem("age", "dupen");
+		//localStorage.setItem("age", "dupen");
+		//localStorage.setItem("age", "dupen");
+	}
+}
+
+function game() {
+    ctx.fillStyle="black";
+    ctx.fillRect(0,0,canv.width,canv.height);
+
+    for(var i=0;i<bytes.length;i++) {
+        for(var j=0;j<(px);j++) {
+			if (bytes[i].value & 1<<((px-1)-j)) {
+				ctx.fillStyle=fgc;
+			} else {
+				ctx.fillStyle=bgc;
+			}
+			ctx.fillRect(j*gs,i*gs,gs-2,gs-2);
+		}
+    }
+	
+    for(var i=0;i<bytes.length;i++) {
+        for(var j=0;j<(px);j++) {
+			if (bytes[i].value & 1<<((px-1)-j)) {
+				ctx.fillStyle=fgc;
+			} else {
+				ctx.fillStyle=bgc;
+			}
+			//ctx.fillRect(j*gs,i*gs,gs-2,gs-2);
+			ctx.fillRect(gs*(px+1)+j*sgs,gs+i*sgs,sgs,sgs);
+			//document.getElementById("cookieError").innerHTML = "";
+			//document.getElementById("cookieError").innerHTML += "<br>{0}, {1}, sg {2}, sgs {3}, px {4}, i {5}, j {6}".format(gs*(px+1)+j*sgs,gs+i*sgs,gs, sgs, px, i, j);
+			//document.getElementById("cookieError").style.visibility = "visible";
+		}
+    }
+	
+	printValue();
+}
+function keyPush(evt) {
+    switch(evt.keyCode) {
+        default:
+    }
+	game();
+}
+
+function mousePush(evt) {
+	iY = Math.floor(evt.offsetY/gs);
+	iX = Math.floor(evt.offsetX/gs);
+	
+	if (iY < bytes.length) {
+		if ( iX< px ) {
+			if (bytes[iY].value & 1<<((px-1)-iX)) {
+				bytes[iY].value &= ~(1<<((px-1)-iX));
+			} else {
+				bytes[iY].value |= (1<<((px-1)-iX));
+			}
+		}
+	}
+	game();
+}
+
+function printValue() {
+	code.innerHTML = "uint_8t customChar[{0}] = {".format(bytes.length);
+	for(var i=0;i<bytes.length;i++) {
+		code.innerHTML += "\n\t0x{0},".format(parseInt(bytes[i].value, 10).toString(16));
+	}
+	code.innerHTML += "\n};"
+}
+
+function showSettings() {
+	document.getElementById('pxTxt').value = px;
+	document.getElementById('pyTxt').value = py;
+
+	document.getElementById('gsTxt').value = gs;
+	document.getElementById('sgsTxt').value = sgs;
+	
+	document.getElementById('bgCl').value = bgc;
+	document.getElementById('fgCl').value = fgc;
+
+	document.getElementById('settings').style.visibility='visible';
+}
+
+function acceptSettings() {
+	gs = parseInt(document.getElementById('gsTxt').value, 10);
+	sgs= parseInt(document.getElementById('sgsTxt').value, 10);
+	px = parseInt(document.getElementById('pxTxt').value, 10);
+	py = parseInt(document.getElementById('pyTxt').value, 10);	
+	bgc=document.getElementById('bgCl').value;
+	fgc=document.getElementById('fgCl').value;
+	document.getElementById('settings').style.visibility = 'hidden';
+	
+	saveToStorage();
+	reload();
+}
+
+function cancelSettings() {
+	document.getElementById('settings').style.visibility = 'hidden';
+}
+
+</script>
+
+<body>
+<input type="button" value="Settings" onclick="showSettings()"><br>
+<div id="cookieError" style="position:absolute; top: 8px; left: 8px; visibility:hidden;background: grey;"></div>
+<canvas id="gc" width="200" height="200"></canvas>
+<pre id="code">
+
+</pre>
+<br>
+<div id="inputs">
+</div><br>
+
+<div id="settings" style="position:absolute; visibility:hidden;top: 0px; left: 0px; background: grey; width:500px">
+Character size:<br>
+Columns <input type="number" pattern="[1-8]" title="Columns" id="pxTxt"> <br>
+Rows <input type="number" pattern="[0-9]." title="Rows" id="pyTxt"> <br>
+Displaying:<br>
+Dot size : <input type="number" pattern="[0-9]." title="Rows" id="gsTxt"> <br>
+Preview dot size : <input type="number" pattern="[0-9]." title="Rows" id="sgsTxt"> <br>
+Colors:<br>
+BG: <input id="bgCl" value="lime"  type="color"><br>
+FG: <input id="fgCl" value="#005500"  type="color"><br>
+
+
+<br><br><input type="button" value="Remove" onclick="deleteFromStorage()"><br><br>
+<input type="button" value="OK" onclick="acceptSettings()"><input type="button" value="Cancel" onclick="cancelSettings()"><br><br>
+
+
+</div>
+</body>
+
+</head>
+</html>
