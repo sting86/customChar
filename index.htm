@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<title>HD44780 LCD custom character generator with preview.</title>
 <script>
 window.onload=function() {
 	if (!String.prototype.format) {
@@ -21,7 +22,7 @@ window.onload=function() {
 var px=5;
 var py=8;
 var gs=20;
-var sgs = 4;
+var sgs = 3;
 var bytes = [];
 var bgc = "#004400";
 var fgc = "#44FF33";
@@ -38,8 +39,15 @@ function reload() {
     ctx=canv.getContext("2d");
     document.addEventListener("keyup",keyPush);
 	canv.addEventListener("mousedown",mousePush);
-    //setInterval(game,1000/15);
-	bytes.length = py;
+	
+	document.getElementById("settingsButton").addEventListener("mouseup", showSettings);
+	document.getElementById("settingsOkButton").addEventListener("mouseup", acceptSettings);
+	document.getElementById("settingsCancelButton").addEventListener("mouseup", cancelSettings);
+	document.getElementById("clearStorage").addEventListener("mouseup", deleteFromStorage);
+	document.getElementById("invertButton").addEventListener("mouseup", negativePush);
+	document.getElementById("clearButton").addEventListener("mouseup", clearPush);
+	
+    bytes.length = py;
 	for(var i=0;i<py;i++) {
 		bytes[i] = document.getElementById("b{0}".format(i));
 	}
@@ -52,15 +60,15 @@ function loadFromStorage() {
 		// Store
 		var temp = localStorage.getItem("px");
 		if (!temp) px=5; else px = parseInt(temp, 10);
-		var temp = localStorage.getItem("py");
+		temp = localStorage.getItem("py");
 		if (!temp) py=8; else py = parseInt(temp, 10);
-		var temp = localStorage.getItem("gs");
+		temp = localStorage.getItem("gs");
 		if (!temp) gs=20; else gs= parseInt(temp, 10);
-		var temp = localStorage.getItem("sgs");
-		if (!temp) sgs=5; else sgs = parseInt(temp, 10);
-		var temp = localStorage.getItem("bgc");
+		temp = localStorage.getItem("sgs");
+		if (!temp) sgs=3; else sgs = parseInt(temp, 10);
+		temp = localStorage.getItem("bgc");
 		if (!temp) bgc="#004400"; else bgc = temp;
-		var temp = localStorage.getItem("fgc");
+		temp = localStorage.getItem("fgc");
 		if (!temp) fgc="#44FF33"; else fgc = temp;
 	} else {
 		document.getElementById("cookieError").innerHTML = "Sorry, your browser does not support Web Storage...";
@@ -83,16 +91,6 @@ function deleteFromStorage() {
 	if (typeof(Storage) !== "undefined") {
 		localStorage.clear();
 		history.go(0);
-		//loadFromStorage();
-		//localStorage.removeItem("px");
-		//localStorage.removeItem("py");
-		//localStorage.removeItem("gs");
-		//localStorage.removeItem("sgs");
-	//	localStorage.removeItem("bgc");
-		//localStorage.removeItem("fgc");
-		//localStorage.setItem("age", "dupen");
-		//localStorage.setItem("age", "dupen");
-		//localStorage.setItem("age", "dupen");
 	}
 }
 
@@ -118,7 +116,6 @@ function game() {
 			} else {
 				ctx.fillStyle=bgc;
 			}
-			//ctx.fillRect(j*gs,i*gs,gs-2,gs-2);
 			ctx.fillRect(gs*(px+1)+j*sgs,gs+i*sgs,sgs,sgs);
 			//document.getElementById("cookieError").innerHTML = "";
 			//document.getElementById("cookieError").innerHTML += "<br>{0}, {1}, sg {2}, sgs {3}, px {4}, i {5}, j {6}".format(gs*(px+1)+j*sgs,gs+i*sgs,gs, sgs, px, i, j);
@@ -147,6 +144,26 @@ function mousePush(evt) {
 				bytes[iY].value |= (1<<((px-1)-iX));
 			}
 		}
+	}
+	game();
+}
+
+function negativePush(evt) {
+	var mask = 0;
+	for (var x=0; x < px; ++x) {
+		mask |= 1<<x;
+	}
+		
+	for (var y=0; y < bytes.length; ++y) {
+		bytes[y].value ^= mask;
+	}
+	game();
+}
+
+function clearPush(evt) {
+
+	for (var y=0; y < bytes.length; ++y) {
+		bytes[y].value = 0;
 	}
 	game();
 }
@@ -190,11 +207,13 @@ function cancelSettings() {
 }
 
 </script>
+</head>
 
 <body>
-<input type="button" value="Settings" onclick="showSettings()"><br>
+<input type="button" value="Settings" id="settingsButton"><br>
 <div id="cookieError" style="position:absolute; top: 8px; left: 8px; visibility:hidden;background: grey;"></div>
-<canvas id="gc" width="200" height="200"></canvas>
+<canvas id="gc" width="200" height="200"></canvas><br>
+<input type="button" value="Negative" id="invertButton"> <input type="button" value="Clear" id="clearButton"><br>
 <pre id="code">
 
 </pre>
@@ -214,12 +233,10 @@ BG: <input id="bgCl" value="lime"  type="color"><br>
 FG: <input id="fgCl" value="#005500"  type="color"><br>
 
 
-<br><br><input type="button" value="Remove" onclick="deleteFromStorage()"><br><br>
-<input type="button" value="OK" onclick="acceptSettings()"><input type="button" value="Cancel" onclick="cancelSettings()"><br><br>
+<br><br><input type="button" value="Remove" id="clearStorage"><br><br>
+<input type="button" value="OK" id="settingsOkButton"><input type="button" value="Cancel" id="settingsCancelButton"><br><br>
 
 
 </div>
 </body>
-
-</head>
 </html>
