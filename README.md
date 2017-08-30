@@ -1,8 +1,6 @@
-﻿<!DOCTYPE html>
-<html>
+﻿<html>
 <head>
 <meta charset="UTF-8">
-<title>HD44780 LCD custom character generator with preview.</title> 
 </head>
 <body>
 <h1>HD44780 LCD custom character generator with preview.</h1>

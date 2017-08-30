@@ -169,7 +169,7 @@ function clearPush(evt) {
 }
 
 function printValue() {
-	code.innerHTML = "uint_8t customChar[{0}] = {".format(bytes.length);
+	code.innerHTML = "uint8_t customChar[] = {";
 	for(var i=0;i<bytes.length;i++) {
 		code.innerHTML += "\n\t0x{0},".format(parseInt(bytes[i].value, 10).toString(16));
 	}
